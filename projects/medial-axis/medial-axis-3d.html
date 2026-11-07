@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A C++17 tool that approximates the 3D medial axis of a closed mesh as a sheet complex built from Voronoi poles.">
+    <title>3D Medial Axis - Rithwik Nukala</title>
+
+    <style>
+        /* --- GLOBAL RESET & TYPOGRAPHY --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            color: #333;
+            background-color: #f9fafb;
+            line-height: 1.7;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        /* --- LAYOUT CONTAINER --- */
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* --- HEADER STYLES --- */
+        header {
+            background-color: #0f62fe;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: white;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #cfd8ff;
+            text-decoration: none;
+        }
+
+        nav a.active {
+            color: #cfd8ff;
+            border-bottom: 2px solid white;
+        }
+
+        /* --- ARTICLE CARD --- */
+        article {
+            background: white;
+            padding: 3rem 2.5rem;
+            margin: 2rem auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 900px;
+        }
+
+        h1 {
+            color: #0f62fe;
+            margin-bottom: 0.5rem;
+            font-size: 2.3rem;
+            line-height: 1.3;
+        }
+
+        .meta {
+            color: #666;
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #eef3ff;
+        }
+
+        h2 {
+            color: #0f62fe;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            font-size: 1.05rem;
+        }
+
+        ul, ol {
+            margin-bottom: 1.2rem;
+            margin-left: 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .link-blue {
+            color: #0f62fe;
+        }
+
+        code {
+            font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f4f6ff;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.92em;
+            white-space: nowrap;
+        }
+
+        pre {
+            background: #f4f6ff;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+            margin-bottom: 1.2rem;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            white-space: pre;
+        }
+
+        /* --- HIGHLIGHT STATS --- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .stat-box {
+            background: #f4f7ff;
+            border-left: 5px solid #0f62fe;
+            border-radius: 4px;
+            padding: 1rem 1.25rem;
+        }
+
+        .stat-box .num {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f62fe;
+            line-height: 1.2;
+        }
+
+        .stat-box .label {
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        /* --- TABLE --- */
+        .table-wrap {
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem;
+        }
+
+        th, td {
+            padding: 0.7rem 0.9rem;
+            text-align: right;
+            border-bottom: 1px solid #e6e9f2;
+            white-space: nowrap;
+        }
+
+        th:first-child, td:first-child {
+            text-align: left;
+        }
+
+        thead th {
+            background: #0f62fe;
+            color: white;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fafe;
+        }
+
+        table.text-table th,
+        table.text-table td {
+            text-align: left;
+            white-space: normal;
+            vertical-align: top;
+        }
+
+        table.text-table td:first-child {
+            width: 42%;
+        }
+
+        td.best {
+            font-weight: 700;
+            color: #0f62fe;
+        }
+
+        td.dnf {
+            color: #b42318;
+            font-weight: 600;
+        }
+
+        .definition {
+            background-color: #f4f7ff;
+            border-left: 5px solid #0f62fe;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .definition strong {
+            display: block;
+            color: #0f62fe;
+            margin-bottom: 0.3rem;
+        }
+
+        /* --- FIGURES --- */
+        figure {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        figure img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+
+        figcaption {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .figure-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .figure-grid figure {
+            margin: 0;
+        }
+
+        .figure-grid img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+        }
+
+        .single-figure img {
+            max-width: 420px;
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            article {
+                padding: 2rem 1.25rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .figure-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <a href="../../index.html" class="logo">Rithwik Nukala</a>
+            <nav>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../projects.html" class="active">Projects</a></li>
+                    <li><a href="../../blog.html">Blog</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <article>
+            <h1>Approximating the 3D Medial Axis</h1>
+            <div class="meta">
+                May 2026 – Aug 2026 · C++17 · CUDA · Polyscope ·
+                <a href="https://github.com/rithwikn05/medial-axis-3D" class="link-blue">Source on GitHub</a>
+            </div>
+
+            <h2>Overview</h2>
+            <p>The medial axis of a solid is the set of centers of maximal balls that fit inside it. In 3D it is not a single surface but a stratified complex of sheets that meet along seams and junction curves. It is a compact skeleton of the shape, useful for shape analysis, simplification, and animation.</p>
+            <p><code>medial-axis-3D</code> is a C++17 tool that extracts an approximate medial-axis sheet complex from a closed triangle mesh and lets you explore it interactively. Following the Voronoi-pole idea behind the Power Crust, it samples the surface, builds a 3D Delaunay tetrahedralization of the samples, and keeps the interior part of the Voronoi dual that is supported by inward poles.</p>
+
+            <figure>
+                <img src="medial_sheets_example.jpg" alt="Orange medial sheets rendered inside a transparent blue input surface in the Polyscope viewer">
+                <figcaption>Pole-supported medial sheets (orange) inside the transparent input surface, rendered in Polyscope.</figcaption>
+            </figure>
+
+            <h2>Pipeline</h2>
+            <ol>
+                <li><strong>Validate and sample the surface.</strong> Check that the mesh is closed, two-manifold, and consistently oriented, then add deterministic uniform or adaptive samples while keeping every original vertex.</li>
+                <li><strong>Build the Delaunay/Voronoi structure.</strong> Construct a 3D Delaunay tetrahedralization with exact adaptive <code>orient3d</code> and <code>insphere</code> predicates. Each tetrahedron's circumcenter is a Voronoi vertex, and circumcenters outside the solid are discarded using the mesh's winding number.</li>
+                <li><strong>Build candidate Voronoi polygons.</strong> Each Delaunay edge has a dual Voronoi polygon. Polygon edges and fan diagonals are tested against the surface, so a chord can't leave and re-enter a concave solid unnoticed.</li>
+                <li><strong>Find inward poles and medial balls.</strong> For each surface sample, select an inward Voronoi pole, validate its radius and surface contacts, and propagate its support to nearby polygons.</li>
+                <li><strong>Select complete sheet strata.</strong> Keep or reject whole Voronoi polygons, restore rejected patches that are enclosed by kept sheets, and complete each sheet across ordinary edges, stopping at seams so one sheet can't flood into another.</li>
+                <li><strong>Classify the topology.</strong> Group boundary edges into loops and label them as real sheet terminations, boundaries at seams and junctions, or unresolved artificial boundaries. Edges shared by three or more polygons are reported as medial seams.</li>
+            </ol>
+
+            <h2>Key Design Decisions</h2>
+            <div class="definition">
+                <strong>Voronoi polygons are atomic</strong>
+                A dual polygon is triangulated as an arbitrary fan, so filtering individual fan triangles punches triangle-shaped holes through sheets. Every keep, reject, and repair decision applies to the whole polygon.
+            </div>
+            <div class="definition">
+                <strong>Measure instead of delete</strong>
+                Local feature size, radius continuity, confidence, component support, and 40/80/160-sample cross-resolution stability are recorded as diagnostic weights. By default they don't delete geometry, because per-triangle pruning easily tears sheets apart.
+            </div>
+            <div class="definition">
+                <strong>Weak and strong contact angles</strong>
+                A 90° contact angle is treated as strong evidence that a polygon is medial. A sheet already supported by a pole may keep growing until the angle falls to 35°. This hysteresis keeps tapering regions of a sheet intact.
+            </div>
+
+            <h2>Results</h2>
+            <p>Reference run on the Fertility model, a high-genus, strongly concave benchmark mesh, at base resolution with default settings:</p>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="num">30,146</span>
+                    <span class="label">medial sheet triangles retained</span>
+                </div>
+                <div class="stat-box">
+                    <span class="num">11,602</span>
+                    <span class="label">complete Voronoi polygons</span>
+                </div>
+                <div class="stat-box">
+                    <span class="num">2,260</span>
+                    <span class="label">triangles restored across 230 completed sheets</span>
+                </div>
+            </div>
+            <p>The 40/80/160-sample stability runs report scores between 0.25 and 1, and the confidence and stability diagnostics remove zero triangles by default. This completed-sheet result is the closest match I found to the sheet layout reported by MATTopo.</p>
+
+            <h3>What I Tried</h3>
+            <div class="table-wrap">
+                <table class="text-table">
+                    <thead>
+                        <tr>
+                            <th>Approach</th>
+                            <th>Outcome on Fertility</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>90° contact angle as a hard cutoff</td>
+                            <td>Only 4,307 polygons, split into 1,689 sheet pieces, with valid tapering regions cut out</td>
+                        </tr>
+                        <tr>
+                            <td class="best">35° continuation + 90° strong evidence + sheet completion (default)</td>
+                            <td class="best">11,602 polygons and 30,146 triangles; the closest match to MATTopo's sheet layout</td>
+                        </tr>
+                        <tr>
+                            <td>Keep every surface-clipped face of the full Voronoi diagram</td>
+                            <td>Filled more space but added many near-surface radial sheets (rejected)</td>
+                        </tr>
+                        <tr>
+                            <td>Clip faces by a local contact-angle disk</td>
+                            <td>Denser and visually less medial (rejected)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>The main lesson: filling in every missing geometric candidate is not the same as recovering the medial axis. More geometry often made the result less medial.</p>
+
+            <h3>Limitations and Next Steps</h3>
+            <p>The pipeline starts from an unconstrained Delaunay tetrahedralization and then tests its dual against the surface. On simple or nearly convex shapes, dual polygons tend to be wholly inside or outside, so the result is clean. On concave, high-genus models like Fertility, some polygons straddle the surface and have to be dropped whole, which leaves a few gaps that the bounded repair pass can't safely fill. Closing them properly needs a constrained interior tetrahedralization, a clipped restricted Voronoi diagram, or a MATTopo-style medial-sphere and power-diagram construction.</p>
+
+            <h2>Engineering</h2>
+            <ul>
+                <li>An interactive Polyscope viewer with diagnostic layers for medial balls, contact spokes, seams, junctions, local feature size, sampling density, and more.</li>
+                <li>An optional CUDA backend for the expensive inside/outside and surface-intersection queries.</li>
+                <li>A regression test suite covering Delaunay construction, pole validation, non-convex containment, atomic dual-face retention, and gap handling.</li>
+                <li>Headless runs with per-stage profiling, plus Python tools for converting OFF meshes and running sampling-convergence experiments.</li>
+            </ul>
+
+            <h2>Running It</h2>
+            <pre><code>cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+./build/polyscope_viewer ./examples/dented_cube.node --samples 160</code></pre>
+
+            <h2>Credits</h2>
+            <ul>
+                <li>Jonathan Shewchuk's robust geometric predicates</li>
+                <li>Amenta, Choi &amp; Kolluri, <em>The Power Crust, Unions of Balls, and the Medial Axis Transform</em></li>
+                <li>Dey &amp; Zhao, <em>Approximate Medial Axis as a Voronoi Subcomplex</em></li>
+                <li><em>MATTopo</em>, topology-preserving medial axis transform via restricted power diagrams</li>
+            </ul>
+        </article>
+    </div>
+
+</body>
+</html>

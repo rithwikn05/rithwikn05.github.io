@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Check out our latest projects and work.">
-    <title>Projects - My Website</title>
+    <meta name="description" content="Projects by Rithwik Nukala: computational geometry, LLM efficiency, AI safety research, and a C++ game engine.">
+    <title>Projects - Rithwik Nukala</title>
 
     <style>
         /* Reset and base styles */
@@ -98,7 +98,7 @@
 
         .projects-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
             gap: 2rem;
         }
 
@@ -124,10 +124,48 @@
             justify-content: center;
             color: white;
             font-size: 1.2rem;
+            flex-direction: column;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .project-image.has-img {
+            padding: 0;
+            background: #000;
+        }
+
+        .project-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .project-image .stat {
+            font-size: 2.6rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .project-image .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-top: 0.4rem;
         }
 
         .project-content {
             padding: 1.5rem;
+        }
+
+        .project-meta {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
         }
 
         .project-content h3 {
@@ -216,93 +254,109 @@
 
         <section class="page-header">
             <div class="container">
-                <h1>Our Projects</h1>
-                <p>Explore our latest work and achievements</p>
+                <h1>Projects</h1>
+                <p>Things I've built, from computational geometry to LLM efficiency and AI safety</p>
             </div>
         </section>
 
         <section class="projects">
             <div class="container">
                 <div class="projects-grid">
-                    
+
                     <div class="project-card">
-                        <div class="project-image">Project Image</div>
+                        <div class="project-image has-img">
+                            <img src="projects/medial-axis/medial_sheets_example.jpg" alt="Orange medial-axis sheets inside a transparent 3D mesh">
+                        </div>
                         <div class="project-content">
-                            <h3>E-Commerce Platform</h3>
+                            <h3>3D Medial Axis Approximation</h3>
+                            <div class="project-meta">May 2026 – Aug 2026 · Computational Geometry</div>
                             <div class="project-tags">
-                                <span class="tag">Web Development</span>
-                                <span class="tag">React</span>
-                                <span class="tag">Node.js</span>
+                                <span class="tag">C++17</span>
+                                <span class="tag">CUDA</span>
+                                <span class="tag">Voronoi Diagrams</span>
                             </div>
-                            <p>A full-featured e-commerce platform with secure payment processing, inventory management, and responsive design.</p>
-                            <a href="#" class="project-link">View Project →</a>
+                            <p>A C++17 tool that extracts an approximate medial-axis sheet complex from a closed triangle mesh. It builds a 3D Delaunay tetrahedralization of surface samples with robust predicates, keeps the interior Voronoi polygons supported by inward poles, and assembles them into sheets with seams and junctions. On the Fertility model it recovers 30,146 sheet triangles from 11,602 Voronoi polygons.</p>
+                            <div class="project-links">
+                                <a href="projects/medial-axis/medial-axis-3d.html" class="project-link">Results &amp; write-up →</a>
+                                <a href="https://github.com/rithwikn05/medial-axis-3D" class="project-link">GitHub →</a>
+                            </div>
                         </div>
                     </div>
 
                     <div class="project-card">
-                        <div class="project-image">Project Image</div>
-                        <div class="project-content">
-                            <h3>Mobile Fitness App</h3>
-                            <div class="project-tags">
-                                <span class="tag">Mobile</span>
-                                <span class="tag">iOS</span>
-                                <span class="tag">Android</span>
-                            </div>
-                            <p>A comprehensive fitness tracking app with workout plans, nutrition tracking, and social features to keep users motivated.</p>
-                            <a href="#" class="project-link">View Project →</a>
+                        <div class="project-image has-img">
+                            <img src="projects/delaunay/showme_10k_zoom.png" alt="Close-up of a Delaunay triangulation of 10,000 random points">
                         </div>
-                    </div>
-
-                    <div class="project-card">
-                        <div class="project-image">Project Image</div>
                         <div class="project-content">
-                            <h3>Corporate Dashboard</h3>
+                            <h3>Delaunay Triangulation</h3>
+                            <div class="project-meta">Apr 2026 · CS 274 Computational Geometry</div>
                             <div class="project-tags">
-                                <span class="tag">Data Visualization</span>
-                                <span class="tag">Analytics</span>
-                            </div>
-                            <p>An interactive dashboard for enterprise clients to visualize key metrics, track performance, and generate insights.</p>
-                            <a href="#" class="project-link">View Project →</a>
-                        </div>
-                    </div>
-
-                    <div class="project-card">
-                        <div class="project-image">Project Image</div>
-                        <div class="project-content">
-                            <h3>AI Chatbot Solution</h3>
-                            <div class="project-tags">
-                                <span class="tag">AI/ML</span>
+                                <span class="tag">Computational Geometry</span>
                                 <span class="tag">Python</span>
-                                <span class="tag">NLP</span>
+                                <span class="tag">Algorithms</span>
                             </div>
-                            <p>An intelligent chatbot powered by natural language processing to provide 24/7 customer support and assistance.</p>
-                            <a href="#" class="project-link">View Project →</a>
+                            <p>Incremental-insertion Delaunay triangulation built on Guibas–Stolfi quad-edges, comparing two point-location strategies: a walking search and a History DAG. With randomized insertion, the History DAG triangulates 1,000,000 points in about 11 minutes, while the walking method doesn't finish within 30, and it cuts orientation-test calls by 94%.</p>
+                            <div class="project-links">
+                                <a href="projects/delaunay/delaunay-triangulation.html" class="project-link">Results &amp; write-up →</a>
+                                <a href="https://github.com/rithwikn05/Delaunay-Triangulation-Project" class="project-link">GitHub →</a>
+                            </div>
                         </div>
                     </div>
 
                     <div class="project-card">
-                        <div class="project-image">Project Image</div>
+                        <div class="project-image">
+                            <div class="stat">1.74×</div>
+                            <div class="stat-label">inference speedup on Gemma3-270M</div>
+                        </div>
                         <div class="project-content">
-                            <h3>Real Estate Portal</h3>
+                            <h3>CalHacks 12.0: Annapurna Labs Grand Prize</h3>
+                            <div class="project-meta">Oct 2025 · Machine Learning Researcher</div>
                             <div class="project-tags">
-                                <span class="tag">Web App</span>
-                                <span class="tag">Maps API</span>
+                                <span class="tag">LLM Efficiency</span>
+                                <span class="tag">Pruning</span>
+                                <span class="tag">Quantization</span>
                             </div>
-                            <p>A property listing platform with advanced search, virtual tours, and integrated mapping for real estate agents and buyers.</p>
-                            <a href="#" class="project-link">View Project →</a>
+                            <p>Won Amazon's Annapurna Labs Grand Prize for an LLM pruning and quantization pipeline that delivered a 1.74× speedup on Gemma3-270M. Also built a custom 70M-parameter model for a chain-of-thought system that improves context through recursive inference.</p>
+                            <div class="project-links">
+                                <a href="https://github.com/rithwikn05/CalHacks12" class="project-link">GitHub →</a>
+                            </div>
                         </div>
                     </div>
 
                     <div class="project-card">
-                        <div class="project-image">Project Image</div>
+                        <div class="project-image">
+                            <div class="stat">Steering</div>
+                            <div class="stat-label">LLM behavior through latent space</div>
+                        </div>
                         <div class="project-content">
-                            <h3>Educational Platform</h3>
+                            <h3>MATS: Latent Space Steering</h3>
+                            <div class="project-meta">Aug 2025 – Oct 2025 · AI Safety and Alignment Researcher</div>
                             <div class="project-tags">
-                                <span class="tag">EdTech</span>
-                                <span class="tag">Video Streaming</span>
+                                <span class="tag">AI Safety</span>
+                                <span class="tag">Alignment</span>
+                                <span class="tag">LLMs</span>
                             </div>
-                            <p>An online learning platform with video courses, quizzes, progress tracking, and certificate generation for students.</p>
-                            <a href="#" class="project-link">View Project →</a>
+                            <p>Research through the MATS program. Formulated an algorithm that boosts specialist LLM behavior by manipulating the model's latent space, with no finetuning, and designed vector steering techniques that give nuanced emotional control beyond binary responses.</p>
+                        </div>
+                    </div>
+
+                    <div class="project-card">
+                        <div class="project-image">
+                            <div class="stat">Vertex</div>
+                            <div class="stat-label">3D graphics engine in C++</div>
+                        </div>
+                        <div class="project-content">
+                            <h3>Vertex Game Engine</h3>
+                            <div class="project-meta">May 2025 – Jul 2025 · Lead Developer</div>
+                            <div class="project-tags">
+                                <span class="tag">C++</span>
+                                <span class="tag">Graphics</span>
+                                <span class="tag">Physics</span>
+                            </div>
+                            <p>A 3D graphics engine written in C++ with a custom rendering backend, physics engine, and math library. Performance work includes spatial partitioning, frustum culling, and batch rendering.</p>
+                            <div class="project-links">
+                                <a href="https://github.com/rithwikn05/Vertex" class="project-link">GitHub →</a>
+                            </div>
                         </div>
                     </div>
 

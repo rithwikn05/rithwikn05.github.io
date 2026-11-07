@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Incremental-insertion Delaunay triangulation with walking and History DAG point location: implementation and benchmark results.">
+    <title>Delaunay Triangulation - Rithwik Nukala</title>
+
+    <style>
+        /* --- GLOBAL RESET & TYPOGRAPHY --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            color: #333;
+            background-color: #f9fafb;
+            line-height: 1.7;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        /* --- LAYOUT CONTAINER --- */
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* --- HEADER STYLES --- */
+        header {
+            background-color: #0f62fe;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: white;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #cfd8ff;
+            text-decoration: none;
+        }
+
+        nav a.active {
+            color: #cfd8ff;
+            border-bottom: 2px solid white;
+        }
+
+        /* --- ARTICLE CARD --- */
+        article {
+            background: white;
+            padding: 3rem 2.5rem;
+            margin: 2rem auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 900px;
+        }
+
+        h1 {
+            color: #0f62fe;
+            margin-bottom: 0.5rem;
+            font-size: 2.3rem;
+            line-height: 1.3;
+        }
+
+        .meta {
+            color: #666;
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #eef3ff;
+        }
+
+        h2 {
+            color: #0f62fe;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        p {
+            margin-bottom: 1.2rem;
+            font-size: 1.05rem;
+        }
+
+        ul, ol {
+            margin-bottom: 1.2rem;
+            margin-left: 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .link-blue {
+            color: #0f62fe;
+        }
+
+        code {
+            font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+            background: #f4f6ff;
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+            font-size: 0.92em;
+            white-space: nowrap;
+        }
+
+        pre {
+            background: #f4f6ff;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+            margin-bottom: 1.2rem;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            white-space: pre;
+        }
+
+        /* --- HIGHLIGHT STATS --- */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .stat-box {
+            background: #f4f7ff;
+            border-left: 5px solid #0f62fe;
+            border-radius: 4px;
+            padding: 1rem 1.25rem;
+        }
+
+        .stat-box .num {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f62fe;
+            line-height: 1.2;
+        }
+
+        .stat-box .label {
+            font-size: 0.95rem;
+            color: #555;
+        }
+
+        /* --- TABLE --- */
+        .table-wrap {
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1rem;
+        }
+
+        th, td {
+            padding: 0.7rem 0.9rem;
+            text-align: right;
+            border-bottom: 1px solid #e6e9f2;
+            white-space: nowrap;
+        }
+
+        th:first-child, td:first-child {
+            text-align: left;
+        }
+
+        thead th {
+            background: #0f62fe;
+            color: white;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fafe;
+        }
+
+        td.best {
+            font-weight: 700;
+            color: #0f62fe;
+        }
+
+        td.dnf {
+            color: #b42318;
+            font-weight: 600;
+        }
+
+        .definition {
+            background-color: #f4f7ff;
+            border-left: 5px solid #0f62fe;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .definition strong {
+            display: block;
+            color: #0f62fe;
+            margin-bottom: 0.3rem;
+        }
+
+        /* --- FIGURES --- */
+        figure {
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        figure img {
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+
+        figcaption {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .figure-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+
+        .figure-grid figure {
+            margin: 0;
+        }
+
+        .figure-grid img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+        }
+
+        .single-figure img {
+            max-width: 420px;
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            article {
+                padding: 2rem 1.25rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .figure-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <a href="../../index.html" class="logo">Rithwik Nukala</a>
+            <nav>
+                <ul>
+                    <li><a href="../../index.html">Home</a></li>
+                    <li><a href="../../projects.html" class="active">Projects</a></li>
+                    <li><a href="../../blog.html">Blog</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <article>
+            <h1>Delaunay Triangulation via Incremental Insertion</h1>
+            <div class="meta">
+                April 2026 · CS 274 (Computational Geometry) project · Python ·
+                <a href="https://github.com/rithwikn05/Delaunay-Triangulation-Project" class="link-blue">Source on GitHub</a>
+            </div>
+
+            <h2>Overview</h2>
+            <p>This project implements the incremental insertion algorithm for 2D Delaunay triangulation on top of the Guibas–Stolfi quad-edge data structure. Points are inserted one at a time; after each insertion, edges that violate the empty-circumcircle property are flipped until the triangulation is Delaunay again.</p>
+            <p>The main question was how much point location (finding the triangle that contains each new point) dominates the running time. I implemented and benchmarked two strategies:</p>
+            <ul>
+                <li><strong>Walking</strong> (<code>--slow</code>): start from a known edge and walk across neighboring triangles toward the new point.</li>
+                <li><strong>History DAG</strong> (<code>--fast</code>): keep every triangle that has ever existed in a directed acyclic graph, and descend from the initial bounding triangle through its children to the triangle that contains the point.</li>
+            </ul>
+
+            <figure class="single-figure">
+                <img src="spiral_triangulation.png" alt="Delaunay triangulation of a small spiral point set, drawn in yellow on black">
+                <figcaption>Triangulation of a small spiral point set.</figcaption>
+            </figure>
+
+            <h2>How It Works</h2>
+            <ol>
+                <li>Build a large bounding triangle that contains every input point.</li>
+                <li>Optionally shuffle the input (<code>--randomized</code>) so the expected cost stays O(n log n).</li>
+                <li>For each point, locate its containing triangle (by walking or through the History DAG), then connect the point to that triangle's vertices. Points that land exactly on an edge are handled by splitting the edge.</li>
+                <li>Test each edge opposite the new point with the in-circle predicate and flip it if it fails, pushing the newly exposed edges back onto the stack.</li>
+                <li>When using the History DAG, record every split and flip as new child nodes so later point locations can descend through them.</li>
+            </ol>
+            <p>Orientation and in-circle tests use Jonathan Shewchuk's geometric predicates, and the output is written as a <code>.ele</code> file for viewing in Show Me.</p>
+
+            <h2>Results</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="num">~11 min</span>
+                    <span class="label">to triangulate 1,000,000 points with the History DAG</span>
+                </div>
+                <div class="stat-box">
+                    <span class="num">2.5×</span>
+                    <span class="label">faster than walking at 100,000 points</span>
+                </div>
+                <div class="stat-box">
+                    <span class="num">94%</span>
+                    <span class="label">fewer orientation tests at 10,000 points</span>
+                </div>
+            </div>
+
+            <h3>Running Time</h3>
+            <p>Both methods were run with randomized insertion order on an 8-core Intel i9.</p>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Points</th>
+                            <th>History DAG</th>
+                            <th>Walking</th>
+                            <th>Speedup</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>10,000</td>
+                            <td class="best">4.45 s</td>
+                            <td>5.15 s</td>
+                            <td>1.16×</td>
+                        </tr>
+                        <tr>
+                            <td>100,000</td>
+                            <td class="best">53.85 s</td>
+                            <td>136.13 s</td>
+                            <td>2.53×</td>
+                        </tr>
+                        <tr>
+                            <td>1,000,000</td>
+                            <td class="best">669.16 s</td>
+                            <td class="dnf">&gt; 30 min (DNF)</td>
+                            <td>&gt; 2.6×</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Why the History DAG Wins</h3>
+            <p>Walking can only move between neighboring triangles, so locating each point means crossing a path of about O(√n) triangles, which effectively re-scans the mesh on every insertion. The History DAG keeps the whole evolution of the triangulation as a search structure: the search starts at the bounding triangle and discards large regions of the mesh at each level, so the expected depth is O(log n). The number of geometric tests grows only slightly as the input doubles, and the gap widens with size until walking can't finish 1,000,000 points at all.</p>
+            <div class="definition">
+                <strong>Profiling with cProfile (10,000 points)</strong>
+                The walking method made 2,146,529 calls to the <code>right_of</code> orientation predicate. The History DAG needed 120,182, a 94% reduction.
+            </div>
+
+            <h3>Does Randomization Matter?</h3>
+            <p>On a 25-point 5 × 5 grid using the History DAG, ordered insertion took 0.0127 s and randomized insertion took 0.0100 s, about 20% faster even at this tiny scale. In the ordered grid the first five points are collinear (they all have y = 0), so the algorithm has to work through degenerate cases one after another. Randomizing the order makes the triangulation grow evenly in all directions, which is what keeps the DAG's O(log n) search depth guarantee.</p>
+
+            <h3>Visualizations</h3>
+            <p>Output triangulations of uniformly random points, viewed in Show Me.</p>
+            <div class="figure-grid">
+                <figure>
+                    <img src="showme_10k_full.png" alt="Full view of the triangulation of 10,000 points">
+                    <figcaption>10,000 points, full view</figcaption>
+                </figure>
+                <figure>
+                    <img src="showme_10k_zoom.png" alt="Zoomed view of the triangulation of 10,000 points">
+                    <figcaption>10,000 points, zoomed in</figcaption>
+                </figure>
+                <figure>
+                    <img src="showme_100k_zoom.png" alt="Zoomed view of the triangulation of 100,000 points">
+                    <figcaption>100,000 points, zoomed in</figcaption>
+                </figure>
+                <figure>
+                    <img src="showme_1m_zoom.png" alt="Zoomed view of the triangulation of 1,000,000 points">
+                    <figcaption>1,000,000 points, zoomed in</figcaption>
+                </figure>
+            </div>
+
+            <h2>Running It</h2>
+            <pre><code>python main.py &lt;file_path&gt;.node [--fast | --slow] [--randomized | --ordered]</code></pre>
+            <ul>
+                <li><code>--fast</code> uses the History DAG, <code>--slow</code> uses walking. The default is <code>--fast</code>.</li>
+                <li><code>--randomized</code> shuffles the insertion order, <code>--ordered</code> keeps the file order. The default is <code>--randomized</code>.</li>
+            </ul>
+
+            <h2>Credits</h2>
+            <ul>
+                <li>Jonathan Shewchuk's robust geometric predicates</li>
+                <li>Guibas &amp; Stolfi, <em>Primitives for the Manipulation of General Subdivisions and the Computation of Voronoi Diagrams</em> (pseudocode for the quad-edge structure)</li>
+            </ul>
+        </article>
+    </div>
+
+</body>
+</html>
